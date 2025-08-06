@@ -1,0 +1,75 @@
+const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
+
+const userSchema = new mongoose.Schema({
+  nome: {
+    type: String,
+    required: [true, 'Nome é obrigatório'],
+    trim: true,
+    minlength: [2, 'Nome deve ter pelo menos 2 caracteres']
+  },
+  email: {
+    type: String,
+    required: [true, 'Email é obrigatório'],
+    unique: true,
+    lowercase: true,
+    trim: true,
+    match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'Email inválido']
+  },
+  senha: {
+    type: String,
+    required: [true, 'Senha é obrigatória'],
+    minlength: [6, 'Senha deve ter pelo menos 6 caracteres']
+  },
+  role: {
+    type: String,
+    enum: ['ADM', 'COLABORADOR'],
+    default: 'COLABORADOR',
+    required: true
+  },
+  ativo: {
+    type: Boolean,
+    default: true
+  },
+  dataCriacao: {
+    type: Date,
+    default: Date.now
+  },
+  ultimoLogin: {
+    type: Date
+  }
+}, {
+  timestamps: true
+});
+
+// Hash da senha antes de salvar
+userSchema.pre('save', async function(next) {
+  if (!this.isModified('senha')) return next();
+  
+  try {
+    const salt = await bcrypt.genSalt(12);
+    this.senha = await bcrypt.hash(this.senha, salt);
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Método para comparar senhas
+userSchema.methods.compararSenha = async function(senhaCandidata) {
+  return await bcrypt.compare(senhaCandidata, this.senha);
+};
+
+// Método para retornar dados do usuário sem a senha
+userSchema.methods.toJSON = function() {
+  const userObject = this.toObject();
+  delete userObject.senha;
+  return userObject;
+};
+
+// Método estático para buscar usuário por email
+userSchema.statics.buscarPorEmail = function(email) {
+  return this.findOne({ email: email.toLowerCase() });
+};
+
+module.exports = mongoose.model('User', userSchema);
