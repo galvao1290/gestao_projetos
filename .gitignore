@@ -131,6 +131,9 @@ dist/
 
 # Uploads (arquivos enviados pelos usuários)
 uploads/
+# Mas manter estrutura de pastas
+!uploads/.gitkeep
+!uploads/*/.gitkeep
 
 # Arquivos CSV de exemplo/teste
 *.csv
@@ -154,14 +157,14 @@ coverage/
 # PM2
 .pm2/
 
-# Docker
-Dockerfile
-docker-compose.yml
+# Docker (manter arquivos de configuração)
+# Dockerfile
+# docker-compose.yml
 .dockerignore
 
-# Kubernetes
-*.yaml
-*.yml
+# Kubernetes (manter arquivos de configuração)
+# *.yaml
+# *.yml
 
 # Terraform
 *.tfstate
