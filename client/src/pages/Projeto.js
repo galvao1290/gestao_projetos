@@ -21,6 +21,8 @@ const Projeto = () => {
   const [mostrarPermissoesColuna, setMostrarPermissoesColuna] = useState(false);
   const [permissoesColuna, setPermissoesColuna] = useState({});
   const [carregandoPermissoes, setCarregandoPermissoes] = useState(true);
+  const [editandoDescricao, setEditandoDescricao] = useState(false);
+  const [novaDescricao, setNovaDescricao] = useState('');
 
   const carregarPermissoesColuna = useCallback(async () => {
     console.log('DIAGNÓSTICO FINAL: Entrei na função carregarPermissoesColuna. User:', user);
@@ -111,6 +113,39 @@ const Projeto = () => {
       carregarPermissoesColuna();
     }
   }, [id, carregarPermissoesColuna]);
+
+  // Função para salvar a descrição editada
+  const salvarDescricao = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.put(
+        `http://localhost:5000/api/projetos/${id}`,
+        { descricao: novaDescricao },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (response.data.success) {
+        setProjeto(prev => ({ ...prev, descricao: novaDescricao }));
+        setEditandoDescricao(false);
+        toast.success('Descrição atualizada com sucesso!');
+      }
+    } catch (error) {
+      console.error('Erro ao salvar descrição:', error);
+      toast.error('Erro ao salvar descrição');
+    }
+  };
+
+  // Função para iniciar a edição da descrição
+  const iniciarEdicaoDescricao = () => {
+    setNovaDescricao(projeto?.descricao || '');
+    setEditandoDescricao(true);
+  };
+
+  // Função para cancelar a edição da descrição
+  const cancelarEdicaoDescricao = () => {
+    setEditandoDescricao(false);
+    setNovaDescricao('');
+  };
 
   // Função para converter dados do backend para formato da planilha
   const converterDadosParaPlanilha = (dadosBackend) => {
@@ -217,27 +252,79 @@ const Projeto = () => {
               </button>
               <div>
                 <h1>{projeto?.nome}</h1>
-                {projeto?.descricao && (
-                  <p className="projeto-descricao">{projeto.descricao}</p>
+                {editandoDescricao ? (
+                  <div className="editar-descricao">
+                    <textarea
+                      value={novaDescricao}
+                      onChange={(e) => setNovaDescricao(e.target.value)}
+                      className="descricao-textarea"
+                      placeholder="Digite a descrição do projeto..."
+                      rows={4}
+                    />
+                    <div className="descricao-acoes">
+                      <button 
+                        className="btn btn-primary btn-sm"
+                        onClick={salvarDescricao}
+                      >
+                        Salvar
+                      </button>
+                      <button 
+                        className="btn btn-secondary btn-sm"
+                        onClick={cancelarEdicaoDescricao}
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="descricao-container">
+                    {projeto?.descricao ? (
+                      <p className="projeto-descricao">{projeto.descricao}</p>
+                    ) : (
+                      <p className="projeto-descricao sem-descricao">Nenhuma descrição definida</p>
+                    )}
+                  </div>
                 )}
               </div>
             </div>
             
             {user?.role === 'ADM' && (
-                <>
+                <div className="projeto-admin-actions">
                   <button 
                     className="btn btn-secondary"
                     onClick={() => setMostrarGerenciarColaboradores(true)}
                   >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                      <circle cx="9" cy="7" r="4"/>
+                      <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                      <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
                     Gerenciar Colaboradores
                   </button>
                   <button 
                     className="btn btn-secondary"
                     onClick={() => setMostrarPermissoesColuna(true)}
                   >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                      <path d="M9 9h6v6H9z"/>
+                      <path d="M9 3v6"/>
+                      <path d="M21 9h-6"/>
+                    </svg>
                     Permissões de Coluna
                   </button>
-                </>
+                  <button 
+                    className="btn btn-secondary"
+                    onClick={iniciarEdicaoDescricao}
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                    Editar Descrição
+                  </button>
+                </div>
               )}
             
           </div>
