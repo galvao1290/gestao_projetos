@@ -156,6 +156,30 @@ const projetoSchema = new mongoose.Schema({
       default: true
     }
   },
+  comentarios: [{
+    autor: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
+    },
+    texto: {
+      type: String,
+      required: [true, 'Texto do comentário é obrigatório'],
+      trim: true,
+      maxlength: [1000, 'Comentário não pode exceder 1000 caracteres']
+    },
+    criadoEm: {
+      type: Date,
+      default: Date.now
+    },
+    editadoEm: {
+      type: Date
+    },
+    ativo: {
+      type: Boolean,
+      default: true
+    }
+  }],
   ativo: {
     type: Boolean,
     default: true
@@ -177,6 +201,9 @@ projetoSchema.pre(/^find/, function(next) {
     select: 'nome email role'
   }).populate({
     path: 'colaboradores.usuario',
+    select: 'nome email role'
+  }).populate({
+    path: 'comentarios.autor',
     select: 'nome email role'
   });
   next();

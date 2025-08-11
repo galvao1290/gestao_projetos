@@ -8,6 +8,7 @@ import Navbar from '../components/Navbar';
 import PlanilhaInterativa from '../components/PlanilhaInterativa';
 import GerenciarColaboradores from '../components/GerenciarColaboradores';
 import GerenciarPermissoesColuna from '../components/GerenciarPermissoesColuna';
+import ComentariosProjeto from '../components/ComentariosProjeto';
 
 const Projeto = () => {
   const { id } = useParams();
@@ -368,6 +369,9 @@ const Projeto = () => {
                 </div>
               </div>
             )}
+            
+            {/* Seção de Comentários */}
+            <ComentariosProjeto projetoId={id} />
           </div>
         </div>
       </div>

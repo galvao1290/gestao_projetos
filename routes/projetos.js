@@ -1215,4 +1215,272 @@ router.get('/:id/permissoes-coluna', verificarToken, verificarAdmin, async (req,
   }
 });
 
+// POST /api/projetos/:id/comentarios - Adicionar comentário
+router.post('/:id/comentarios',
+  verificarToken,
+  verificarColaboradorOuAdmin,
+  [
+    param('id').isMongoId().withMessage('ID do projeto inválido'),
+    body('texto')
+      .trim()
+      .isLength({ min: 1, max: 1000 })
+      .withMessage('Comentário deve ter entre 1 e 1000 caracteres')
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Dados inválidos', 
+          errors: errors.array() 
+        });
+      }
+
+      const projeto = await Projeto.findById(req.params.id);
+      if (!projeto || !projeto.ativo) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'Projeto não encontrado' 
+        });
+      }
+
+      // Verificar se usuário tem acesso ao projeto
+      const isAdmin = req.user.role === 'ADM';
+      const isCriador = projeto.criador._id.toString() === (req.user._id || req.user.id).toString();
+      const isColaborador = projeto.colaboradores.some(
+        col => (col.usuario._id || col.usuario).toString() === (req.user._id || req.user.id).toString()
+      );
+
+      if (!isAdmin && !isCriador && !isColaborador) {
+        return res.status(403).json({ 
+          success: false, 
+          message: 'Acesso negado' 
+        });
+      }
+
+      // Adicionar comentário
+      const novoComentario = {
+        autor: req.user._id || req.user.id,
+        texto: req.body.texto,
+        criadoEm: new Date()
+      };
+
+      projeto.comentarios.push(novoComentario);
+      await projeto.save();
+
+      // Recarregar projeto com dados populados
+      const projetoAtualizado = await Projeto.findById(req.params.id);
+      const comentarioAdicionado = projetoAtualizado.comentarios[projetoAtualizado.comentarios.length - 1];
+
+      res.status(201).json({
+        success: true,
+        message: 'Comentário adicionado com sucesso',
+        data: comentarioAdicionado
+      });
+    } catch (error) {
+      console.error('Erro ao adicionar comentário:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Erro interno do servidor' 
+      });
+    }
+  }
+);
+
+// GET /api/projetos/:id/comentarios - Listar comentários
+router.get('/:id/comentarios',
+  verificarToken,
+  verificarColaboradorOuAdmin,
+  [
+    param('id').isMongoId().withMessage('ID do projeto inválido')
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Dados inválidos', 
+          errors: errors.array() 
+        });
+      }
+
+      const projeto = await Projeto.findById(req.params.id);
+      if (!projeto || !projeto.ativo) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'Projeto não encontrado' 
+        });
+      }
+
+      // Verificar se usuário tem acesso ao projeto
+      const isAdmin = req.user.role === 'ADM';
+      const isCriador = projeto.criador._id.toString() === (req.user._id || req.user.id).toString();
+      const isColaborador = projeto.colaboradores.some(
+        col => (col.usuario._id || col.usuario).toString() === (req.user._id || req.user.id).toString()
+      );
+
+      if (!isAdmin && !isCriador && !isColaborador) {
+        return res.status(403).json({ 
+          success: false, 
+          message: 'Acesso negado' 
+        });
+      }
+
+      // Filtrar apenas comentários ativos e ordenar por data
+      const comentarios = projeto.comentarios
+        .filter(comentario => comentario.ativo)
+        .sort((a, b) => new Date(b.criadoEm) - new Date(a.criadoEm));
+
+      res.json({
+        success: true,
+        data: comentarios
+      });
+    } catch (error) {
+      console.error('Erro ao listar comentários:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Erro interno do servidor' 
+      });
+    }
+  }
+);
+
+// PUT /api/projetos/:id/comentarios/:comentarioId - Editar comentário
+router.put('/:id/comentarios/:comentarioId',
+  verificarToken,
+  [
+    param('id').isMongoId().withMessage('ID do projeto inválido'),
+    param('comentarioId').isMongoId().withMessage('ID do comentário inválido'),
+    body('texto')
+      .trim()
+      .isLength({ min: 1, max: 1000 })
+      .withMessage('Comentário deve ter entre 1 e 1000 caracteres')
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Dados inválidos', 
+          errors: errors.array() 
+        });
+      }
+
+      const projeto = await Projeto.findById(req.params.id);
+      if (!projeto || !projeto.ativo) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'Projeto não encontrado' 
+        });
+      }
+
+      const comentario = projeto.comentarios.id(req.params.comentarioId);
+      if (!comentario || !comentario.ativo) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'Comentário não encontrado' 
+        });
+      }
+
+      // Verificar se usuário pode editar (autor do comentário ou admin)
+      const isAdmin = req.user.role === 'ADM';
+      const isAutor = comentario.autor._id.toString() === (req.user._id || req.user.id).toString();
+
+      if (!isAdmin && !isAutor) {
+        return res.status(403).json({ 
+          success: false, 
+          message: 'Apenas o autor do comentário ou administradores podem editá-lo' 
+        });
+      }
+
+      // Atualizar comentário
+      comentario.texto = req.body.texto;
+      comentario.editadoEm = new Date();
+      await projeto.save();
+
+      // Recarregar projeto com dados populados
+      const projetoAtualizado = await Projeto.findById(req.params.id);
+      const comentarioAtualizado = projetoAtualizado.comentarios.id(req.params.comentarioId);
+
+      res.json({
+        success: true,
+        message: 'Comentário atualizado com sucesso',
+        data: comentarioAtualizado
+      });
+    } catch (error) {
+      console.error('Erro ao editar comentário:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Erro interno do servidor' 
+      });
+    }
+  }
+);
+
+// DELETE /api/projetos/:id/comentarios/:comentarioId - Excluir comentário
+router.delete('/:id/comentarios/:comentarioId',
+  verificarToken,
+  [
+    param('id').isMongoId().withMessage('ID do projeto inválido'),
+    param('comentarioId').isMongoId().withMessage('ID do comentário inválido')
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Dados inválidos', 
+          errors: errors.array() 
+        });
+      }
+
+      const projeto = await Projeto.findById(req.params.id);
+      if (!projeto || !projeto.ativo) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'Projeto não encontrado' 
+        });
+      }
+
+      const comentario = projeto.comentarios.id(req.params.comentarioId);
+      if (!comentario || !comentario.ativo) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'Comentário não encontrado' 
+        });
+      }
+
+      // Verificar se usuário pode excluir (autor do comentário ou admin)
+      const isAdmin = req.user.role === 'ADM';
+      const isAutor = comentario.autor._id.toString() === (req.user._id || req.user.id).toString();
+
+      if (!isAdmin && !isAutor) {
+        return res.status(403).json({ 
+          success: false, 
+          message: 'Apenas o autor do comentário ou administradores podem excluí-lo' 
+        });
+      }
+
+      // Marcar comentário como inativo (soft delete)
+      comentario.ativo = false;
+      await projeto.save();
+
+      res.json({
+        success: true,
+        message: 'Comentário excluído com sucesso'
+      });
+    } catch (error) {
+      console.error('Erro ao excluir comentário:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Erro interno do servidor' 
+      });
+    }
+  }
+);
+
 module.exports = router;
