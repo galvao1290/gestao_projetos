@@ -1,0 +1,109 @@
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 500px;
+}
+
+.modal h3 {
+  margin: 0 0 1.5rem 0;
+  color: #333;
+  font-size: 1.5rem;
+}
+
+.modal-input {
+  width: 100%;
+  padding: 0.75rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.modal-input:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+.btn-primary,
+.btn-secondary {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-secondary {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+.btn-secondary:hover {
+  background-color: #d0d0d0;
+}
+
+/* Estilos para o cabeçalho da coluna com botão de exclusão */
+.column-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.column-delete-btn {
+  padding: 2px 6px;
+  font-size: 14px;
+  line-height: 1;
+  min-width: auto;
+  height: 20px;
+  margin-left: 8px;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.column-delete-btn:hover {
+  opacity: 1;
+}
+
+.column-header-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.column-title {
+  flex: 1;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background-color: #4a90e2;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #357abd;
+}

@@ -313,15 +313,7 @@ const DashboardAdmin = () => {
               <p>Visualizar, editar e gerenciar todos os usuários do sistema</p>
             </Link>
 
-            <Link to="/perfil" className="action-card">
-              <div className="action-icon">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-              </div>
-              <h3>Meu Perfil</h3>
-              <p>Visualizar e editar informações do seu perfil</p>
-            </Link>
+
 
             <Link to="/criar-projeto" className="action-card">
               <div className="action-icon">

@@ -13,7 +13,7 @@ import Registro from './pages/Registro';
 import DashboardAdmin from './pages/DashboardAdmin';
 import DashboardColaborador from './pages/DashboardColaborador';
 import MeusProjetos from './pages/MeusProjetos';
-import Perfil from './pages/Perfil';
+
 import GerenciarUsuarios from './pages/GerenciarUsuarios';
 import CriarProjeto from './pages/CriarProjeto';
 import Projeto from './pages/Projeto';
@@ -83,14 +83,7 @@ function App() {
               } 
             />
             
-            <Route 
-              path="/perfil" 
-              element={
-                <ProtectedRoute>
-                  <Perfil />
-                </ProtectedRoute>
-              } 
-            />
+
             
             <Route 
               path="/usuarios" 

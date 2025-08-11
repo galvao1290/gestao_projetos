@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { toast } from 'react-toastify';
 import axios from 'axios';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Navbar from '../components/Navbar';
@@ -138,8 +139,31 @@ const Projeto = () => {
     return { colunas, linhas };
   };
 
-  const handleDadosChange = (novosDados) => {
+  const handleDadosChange = async (novosDados) => {
     setDadosCSV(novosDados);
+    
+    // Salvar automaticamente no backend quando há mudanças
+    if (projeto?._id) {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.put(`/api/projetos/${projeto._id}/dados`, {
+          dados: novosDados
+        }, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        if (response.data.success) {
+          // Dados salvos com sucesso - não mostrar toast para não incomodar o usuário
+          console.log('Dados salvos automaticamente');
+        } else {
+          toast.error('Erro ao salvar dados: ' + response.data.message);
+        }
+      } catch (error) {
+        console.error('Erro ao salvar dados automaticamente:', error);
+        const message = error.response?.data?.message || 'Erro ao salvar dados';
+        toast.error(message);
+      }
+    }
   };
 
   const voltarParaDashboard = () => {
@@ -150,31 +174,6 @@ const Projeto = () => {
     }
   };
 
-  const formatarData = (data) => {
-    if (!data) return 'Não definida';
-    return new Date(data).toLocaleDateString('pt-BR');
-  };
-
-  const getStatusColor = (status) => {
-    const colors = {
-      'PLANEJAMENTO': '#6b7280',
-      'EM_ANDAMENTO': '#3b82f6',
-      'PAUSADO': '#f59e0b',
-      'CONCLUIDO': '#10b981',
-      'CANCELADO': '#ef4444'
-    };
-    return colors[status] || '#6b7280';
-  };
-
-  const getPrioridadeColor = (prioridade) => {
-    const colors = {
-      'BAIXA': '#10b981',
-      'MEDIA': '#f59e0b',
-      'ALTA': '#f97316',
-      'CRITICA': '#ef4444'
-    };
-    return colors[prioridade] || '#6b7280';
-  };
 
   if (loading) {
     return <LoadingSpinner message="Carregando projeto..." />;
@@ -241,64 +240,6 @@ const Projeto = () => {
                 </>
               )}
             
-            <div className="projeto-meta">
-              <div className="meta-item">
-                <span className="meta-label">Status:</span>
-                <span 
-                  className="status-badge"
-                  style={{ backgroundColor: getStatusColor(projeto?.status) }}
-                >
-                  {projeto?.status || 'PLANEJAMENTO'}
-                </span>
-              </div>
-              
-              <div className="meta-item">
-                <span className="meta-label">Prioridade:</span>
-                <span 
-                  className="priority-badge"
-                  style={{ backgroundColor: getPrioridadeColor(projeto?.prioridade) }}
-                >
-                  {projeto?.prioridade || 'MEDIA'}
-                </span>
-              </div>
-              
-              <div className="meta-item">
-                <span className="meta-label">Progresso:</span>
-                <div className="progress-container">
-                  <div className="progress-bar">
-                    <div 
-                      className="progress-fill"
-                      style={{ width: `${projeto?.progresso || 0}%` }}
-                    ></div>
-                  </div>
-                  <span className="progress-text">{projeto?.progresso || 0}%</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div className="projeto-info-grid">
-            <div className="info-item">
-              <span className="info-label">Criado por:</span>
-              <span className="info-value">{projeto?.criador?.nome}</span>
-            </div>
-            
-            <div className="info-item">
-              <span className="info-label">Data de Criação:</span>
-              <span className="info-value">{formatarData(projeto?.createdAt)}</span>
-            </div>
-            
-            <div className="info-item">
-              <span className="info-label">Última Atualização:</span>
-              <span className="info-value">{formatarData(projeto?.updatedAt)}</span>
-            </div>
-            
-            {projeto?.dataPrevisao && (
-              <div className="info-item">
-                <span className="info-label">Data Prevista:</span>
-                <span className="info-value">{formatarData(projeto.dataPrevisao)}</span>
-              </div>
-            )}
           </div>
         </div>
 
@@ -321,7 +262,7 @@ const Projeto = () => {
                 dados={dadosCSV}
                 projeto={projeto}
                 onDadosChange={handleDadosChange}
-                
+                onPermissoesChange={carregarPermissoesColuna}
                 permissoesColuna={permissoesColuna}
                 carregandoPermissoes={carregandoPermissoes}
               />

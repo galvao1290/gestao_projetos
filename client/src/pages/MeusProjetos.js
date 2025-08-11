@@ -86,12 +86,7 @@ const MeusProjetos = () => {
             <h1>Meus Projetos</h1>
             <p>Projetos aos quais você foi atribuído como colaborador</p>
           </div>
-          <button 
-            className="btn btn-secondary"
-            onClick={() => navigate('/dashboard-colaborador')}
-          >
-            Voltar ao Dashboard
-          </button>
+
         </div>
 
         <div className="dashboard-content">
@@ -121,9 +116,7 @@ const MeusProjetos = () => {
               <span className="stat-item">
                 Total: <strong>{projetos.length}</strong>
               </span>
-              <span className="stat-item">
-                Ativos: <strong>{projetos.filter(p => p.status === 'ativo').length}</strong>
-              </span>
+
             </div>
           </div>
 

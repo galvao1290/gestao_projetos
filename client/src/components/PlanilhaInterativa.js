@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { useAuth } from '../contexts/AuthContext';
-import axios from 'axios';
+import './PlanilhaInterativa.css';
 
-const PlanilhaInterativa = ({ dados, projeto, onDadosChange, readOnly = false, permissoesColuna = {}, carregandoPermissoes = false }) => {
+const PlanilhaInterativa = ({ dados, projeto, onDadosChange, onPermissoesChange, readOnly = false, permissoesColuna = {}, carregandoPermissoes = false }) => {
   const { user } = useAuth();
   const [dadosLocais, setDadosLocais] = useState(dados || { colunas: [], linhas: [] });
   const [editandoCelula, setEditandoCelula] = useState(null);
   const [valorEdicao, setValorEdicao] = useState('');
-  const [salvandoDados, setSalvandoDados] = useState(false);
+  const [modalAberto, setModalAberto] = useState(false);
+  const [novaColuna, setNovaColuna] = useState('');
   const [filtros, setFiltros] = useState({});
   const [ordenacao, setOrdenacao] = useState({ coluna: null, direcao: 'asc' });
   const [paginaAtual, setPaginaAtual] = useState(1);
@@ -28,8 +29,8 @@ const PlanilhaInterativa = ({ dados, projeto, onDadosChange, readOnly = false, p
       return 'LEITURA_ESCRITA'; // ADMs têm acesso total
     }
     
-    // Para colaboradores, usar permissão específica ou padrão seguro
-    return permissoesColuna[nomeColuna] || 'APENAS_LEITURA'; // ← Padrão mais seguro
+    // Para colaboradores, usar permissão específica ou padrão LEITURA_ESCRITA se não definido
+    return permissoesColuna[nomeColuna] || 'LEITURA_ESCRITA'; // ← Padrão para colaboradores
   };
   
   // Função para verificar se o usuário pode editar uma coluna
@@ -77,36 +78,9 @@ const PlanilhaInterativa = ({ dados, projeto, onDadosChange, readOnly = false, p
     if (onDadosChange) {
       onDadosChange(novosDados);
     }
-
-    // Salvar no backend se o projeto já existe
-    if (projeto?._id && !readOnly) {
-      await salvarDadosBackend(novosDados);
-    }
   };
 
-  const salvarDadosBackend = async (dados) => {
-    setSalvandoDados(true);
-    try {
-      const token = localStorage.getItem('token');
-      const response = await axios.put(`/api/projetos/${projeto._id}/dados`, {
-        dados
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
 
-      if (response.data.success) {
-        toast.success('Dados salvos com sucesso!');
-      } else {
-        toast.error('Erro ao salvar dados: ' + response.data.message);
-      }
-    } catch (error) {
-      console.error('Erro ao salvar dados:', error);
-      const message = error.response?.data?.message || 'Erro ao salvar dados';
-      toast.error(message);
-    } finally {
-      setSalvandoDados(false);
-    }
-  };
 
   const adicionarLinha = () => {
     if (readOnly) return;
@@ -141,15 +115,60 @@ const PlanilhaInterativa = ({ dados, projeto, onDadosChange, readOnly = false, p
     if (readOnly) return;
     
     if (user?.role !== 'ADM') {
-      toast.warning('Apenas administradores podem adicionar colunas.');
+      toast.error('Apenas administradores podem adicionar colunas');
       return;
     }
     
-    const nomeColuna = prompt('Nome da nova coluna:');
-    if (!nomeColuna) return;
+    setModalAberto(true);
+  };
+
+  const removerColuna = (colunaIndex) => {
+    if (readOnly) return;
+    
+    if (user?.role !== 'ADM') {
+      toast.error('Apenas administradores podem remover colunas');
+      return;
+    }
+
+    if (dadosLocais.colunas.length <= 1) {
+      toast.warning('Não é possível remover a última coluna');
+      return;
+    }
+
+    const nomeColuna = dadosLocais.colunas[colunaIndex];
+    
+    if (window.confirm(`Tem certeza que deseja excluir a coluna "${nomeColuna}"? Esta ação não pode ser desfeita.`)) {
+      const novosDados = {
+        ...dadosLocais,
+        colunas: dadosLocais.colunas.filter((_, index) => index !== colunaIndex),
+        linhas: dadosLocais.linhas.map(linha => linha.filter((_, index) => index !== colunaIndex))
+      };
+      
+      setDadosLocais(novosDados);
+      if (onDadosChange) {
+        onDadosChange(novosDados);
+      }
+      
+      // Recarregar permissões após remover coluna
+      if (onPermissoesChange) {
+        setTimeout(() => {
+          onPermissoesChange();
+        }, 500);
+      }
+      
+      toast.success(`Coluna "${nomeColuna}" removida com sucesso!`);
+    }
+  };
+
+  const confirmarAdicionarColuna = () => {
+    if (!novaColuna.trim()) {
+      toast.warning('O nome da coluna não pode estar vazio.');
+      return;
+    }
     
     const novosDados = {
-      colunas: [...dadosLocais.colunas, nomeColuna],
+      ...dadosLocais,
+      colunas: [...dadosLocais.colunas, novaColuna],
       linhas: dadosLocais.linhas.map(linha => [...linha, ''])
     };
     
@@ -157,6 +176,16 @@ const PlanilhaInterativa = ({ dados, projeto, onDadosChange, readOnly = false, p
     if (onDadosChange) {
       onDadosChange(novosDados);
     }
+    
+    // Recarregar permissões após adicionar nova coluna
+    if (onPermissoesChange) {
+      setTimeout(() => {
+        onPermissoesChange();
+      }, 500); // Pequeno delay para garantir que o backend processou a mudança
+    }
+    
+    setNovaColuna('');
+    setModalAberto(false);
   };
 
   const aplicarFiltro = (colunaIndex, valor) => {
@@ -255,12 +284,6 @@ const PlanilhaInterativa = ({ dados, projeto, onDadosChange, readOnly = false, p
             <button className="btn btn-sm btn-outline" onClick={adicionarLinha}>
               + Linha
             </button>
-            {salvandoDados && (
-              <div className="saving-indicator">
-                <div className="spinner-sm"></div>
-                Salvando...
-              </div>
-            )}
           </div>
         )}
       </div>
@@ -269,7 +292,7 @@ const PlanilhaInterativa = ({ dados, projeto, onDadosChange, readOnly = false, p
         <table className="planilha-table">
           <thead>
             <tr>
-              {!readOnly && <th className="row-actions">#</th>}
+              {!readOnly && user?.role === 'ADM' && <th className="row-actions">#</th>}
               {dadosLocais.colunas.map((coluna, index) => {
                 if (colunaEstaOculta(coluna)) {
                   return null; // Não renderizar colunas ocultas
@@ -280,22 +303,33 @@ const PlanilhaInterativa = ({ dados, projeto, onDadosChange, readOnly = false, p
                 return (
                   <th key={index} className={`column-header ${!podeEditar ? 'readonly-column' : ''}`}>
                     <div className="column-header-content">
-                      <span 
-                        className="column-title"
-                        onClick={() => aplicarOrdenacao(index)}
-                      >
-                        {coluna}
-                        {!podeEditar && (
-                          <span className="readonly-indicator" title="Apenas leitura">
-                            🔒
-                          </span>
+                      <div className="column-title-row">
+                        <span 
+                          className="column-title"
+                          onClick={() => aplicarOrdenacao(index)}
+                        >
+                          {coluna}
+                          {!podeEditar && (
+                            <span className="readonly-indicator" title="Apenas leitura">
+                              🔒
+                            </span>
+                          )}
+                          {ordenacao.coluna === index && (
+                            <span className="sort-indicator">
+                              {ordenacao.direcao === 'asc' ? ' ↑' : ' ↓'}
+                            </span>
+                          )}
+                        </span>
+                        {!readOnly && user?.role === 'ADM' && (
+                          <button
+                            className="btn-icon btn-danger-outline column-delete-btn"
+                            onClick={() => removerColuna(index)}
+                            title="Remover coluna"
+                          >
+                            ×
+                          </button>
                         )}
-                        {ordenacao.coluna === index && (
-                          <span className="sort-indicator">
-                            {ordenacao.direcao === 'asc' ? ' ↑' : ' ↓'}
-                          </span>
-                        )}
-                      </span>
+                      </div>
                       <input
                         type="text"
                         placeholder="Filtrar..."
@@ -314,7 +348,7 @@ const PlanilhaInterativa = ({ dados, projeto, onDadosChange, readOnly = false, p
               const linhaOriginalIndex = dadosLocais.linhas.indexOf(linha);
               return (
                 <tr key={linhaOriginalIndex}>
-                  {!readOnly && (
+                  {!readOnly && user?.role === 'ADM' && (
                     <td className="row-actions">
                       <button
                         className="btn-icon btn-danger-outline"
@@ -387,6 +421,39 @@ const PlanilhaInterativa = ({ dados, projeto, onDadosChange, readOnly = false, p
           >
             Próxima
           </button>
+        </div>
+      )}
+
+      {modalAberto && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h3>Adicionar Nova Coluna</h3>
+            <input
+              type="text"
+              className="modal-input"
+              placeholder="Digite o nome da nova coluna"
+              value={novaColuna}
+              onChange={(e) => setNovaColuna(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && confirmarAdicionarColuna()}
+            />
+            <div className="modal-actions">
+              <button
+                className="btn-secondary"
+                onClick={() => {
+                  setModalAberto(false);
+                  setNovaColuna('');
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                className="btn-primary"
+                onClick={confirmarAdicionarColuna}
+              >
+                Adicionar
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

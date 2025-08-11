@@ -618,7 +618,7 @@ router.put('/:id/dados',
                 // Para cada coluna, verificar se o colaborador pode editá-la
                 dados.colunas.forEach((coluna, colunaIndex) => {
                   const nomeColuna = typeof coluna === 'string' ? coluna : coluna.nome || coluna;
-                  const permissaoColuna = permissoesMap[nomeColuna] || 'APENAS_LEITURA';
+                  const permissaoColuna = permissoesMap[nomeColuna] || 'LEITURA_ESCRITA'; // Padrão para colaboradores
                   
                   // Se não pode editar, manter valor existente
                   if (permissaoColuna !== 'LEITURA_ESCRITA') {

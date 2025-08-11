@@ -88,7 +88,7 @@ const NotFound = () => {
                 {user?.role === 'COLABORADOR' && (
                   <li><Link to="/colaborador">Dashboard do Colaborador</Link></li>
                 )}
-                <li><Link to="/perfil">Meu Perfil</Link></li>
+
               </ul>
             </div>
           )}
