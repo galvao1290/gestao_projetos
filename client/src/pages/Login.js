@@ -5,7 +5,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 
 const Login = () => {
   const [formData, setFormData] = useState({
-    email: '',
+    username: '',
     senha: ''
   });
   const [errors, setErrors] = useState({});
@@ -49,15 +49,11 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
-    
+    setErrors({});
     setIsLoading(true);
-    
+
     try {
-      const result = await login(formData.email, formData.senha);
+      const result = await login(formData.username, formData.senha);
       
       if (result.success) {
         // Redirecionar baseado na role do usuário
@@ -88,18 +84,18 @@ const Login = () => {
         
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
-            <label htmlFor="email">Email</label>
+            <label htmlFor="username">Nome de Usuário</label>
             <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
+              type="text"
+              id="username"
+              name="username"
+              value={formData.username}
               onChange={handleChange}
-              className={errors.email ? 'error' : ''}
-              placeholder="Digite seu email"
-              autoComplete="email"
+              className={errors.username ? 'error' : ''}
+              placeholder="Digite seu nome de usuário"
+              required
             />
-            {errors.email && <span className="error-message">{errors.email}</span>}
+            {errors.username && <span className="error-message">{errors.username}</span>}
           </div>
           
           <div className="form-group">
@@ -126,15 +122,6 @@ const Login = () => {
           </button>
         </form>
         
-        <div className="auth-footer">
-          <p>
-            Não tem uma conta? {' '}
-            <Link to="/registro" className="auth-link">
-              Registre-se aqui
-            </Link>
-          </p>
-        </div>
-        
         <div className="demo-accounts">
           <h3>Contas de Demonstração</h3>
           <div className="demo-buttons">
@@ -143,8 +130,8 @@ const Login = () => {
               className="btn btn-outline btn-small"
               onClick={() => {
                 setFormData({
-                  email: 'admin@teste.com',
-                  senha: '123456'
+                  username: 'admin',
+                  senha: '123'
                 });
               }}
             >
@@ -155,8 +142,8 @@ const Login = () => {
               className="btn btn-outline btn-small"
               onClick={() => {
                 setFormData({
-                  email: 'colaborador@teste.com',
-                  senha: '123456'
+                  username: 'joao123',
+                  senha: '123'
                 });
               }}
             >

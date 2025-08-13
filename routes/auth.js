@@ -12,25 +12,36 @@ const gerarToken = (userId) => {
   return jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: '24h' });
 };
 
-// @route   POST /api/auth/registro
-// @desc    Registrar novo usuário
-// @access  Public
-router.post('/registro', [
+// @route   POST /api/auth/criar-usuario
+// @desc    Criação de usuário pelo administrador
+// @access  Private (apenas ADM)
+router.post('/criar-usuario', [
+  verificarToken,
+  (req, res, next) => {
+    if (req.user && req.user.role === 'ADM') {
+      next();
+    } else {
+      return res.status(403).json({ 
+        success: false, 
+        message: 'Acesso negado. Apenas administradores podem criar usuários.' 
+      });
+    }
+  },
   body('nome')
     .trim()
     .isLength({ min: 2 })
     .withMessage('Nome deve ter pelo menos 2 caracteres'),
-  body('email')
-    .isEmail()
-    .normalizeEmail()
-    .withMessage('Email inválido'),
+  body('username')
+    .trim()
+    .isLength({ min: 3, max: 20 })
+    .matches(/^[a-zA-Z0-9_]+$/)
+    .withMessage('Nome de usuário deve ter 3-20 caracteres e conter apenas letras, números e underscore'),
   body('senha')
-    .isLength({ min: 6 })
-    .withMessage('Senha deve ter pelo menos 6 caracteres'),
+    .isLength({ min: 3 })
+    .withMessage('Senha deve ter pelo menos 3 caracteres'),
   body('role')
-    .optional()
     .isIn(['ADM', 'COLABORADOR'])
-    .withMessage('Role deve ser ADM ou COLABORADOR')
+    .withMessage('Cargo deve ser ADM ou COLABORADOR')
 ], async (req, res) => {
   try {
     // Verificar erros de validação
@@ -38,44 +49,40 @@ router.post('/registro', [
     if (!errors.isEmpty()) {
       return res.status(400).json({
         success: false,
-        message: 'Dados inválidos',
+        message: 'Dados de entrada inválidos',
         errors: errors.array()
       });
     }
 
-    const { nome, email, senha, role = 'COLABORADOR' } = req.body;
+    const { nome, username, senha, role } = req.body;
 
     // Verificar se o usuário já existe
-    const usuarioExistente = await User.buscarPorEmail(email);
+    const usuarioExistente = await User.buscarPorUsername(username);
     if (usuarioExistente) {
       return res.status(400).json({
         success: false,
-        message: 'Usuário já existe com este email'
+        message: 'Já existe um usuário com este nome de usuário'
       });
     }
 
     // Criar novo usuário
     const novoUsuario = new User({
       nome,
-      email,
+      username,
       senha,
       role
     });
 
     await novoUsuario.save();
 
-    // Gerar token
-    const token = gerarToken(novoUsuario._id);
-
     res.status(201).json({
       success: true,
-      message: 'Usuário registrado com sucesso',
-      token,
+      message: 'Usuário criado com sucesso',
       user: novoUsuario.toJSON()
     });
 
   } catch (error) {
-    console.error('Erro no registro:', error);
+    console.error('Erro ao criar usuário:', error);
     res.status(500).json({
       success: false,
       message: 'Erro interno do servidor'
@@ -87,10 +94,10 @@ router.post('/registro', [
 // @desc    Login do usuário
 // @access  Public
 router.post('/login', [
-  body('email')
-    .isEmail()
-    .normalizeEmail()
-    .withMessage('Email inválido'),
+  body('username')
+    .trim()
+    .notEmpty()
+    .withMessage('Nome de usuário é obrigatório'),
   body('senha')
     .notEmpty()
     .withMessage('Senha é obrigatória')
@@ -106,10 +113,10 @@ router.post('/login', [
       });
     }
 
-    const { email, senha } = req.body;
+    const { username, senha } = req.body;
 
-    // Buscar usuário por email
-    const usuario = await User.findOne({ email: email.toLowerCase() });
+    // Buscar usuário por username
+    const usuario = await User.buscarPorUsername(username);
     if (!usuario) {
       return res.status(400).json({
         success: false,

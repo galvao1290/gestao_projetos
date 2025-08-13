@@ -15,6 +15,7 @@ import DashboardColaborador from './pages/DashboardColaborador';
 import MeusProjetos from './pages/MeusProjetos';
 
 import GerenciarUsuarios from './pages/GerenciarUsuarios';
+import CriarUsuario from './pages/CriarUsuario';
 import CriarProjeto from './pages/CriarProjeto';
 import Projeto from './pages/Projeto';
 import NotFound from './pages/NotFound';
@@ -90,6 +91,15 @@ function App() {
               element={
                 <ProtectedRoute requiredRole="ADM">
                   <GerenciarUsuarios />
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/criar-usuario" 
+              element={
+                <ProtectedRoute requiredRole="ADM">
+                  <CriarUsuario />
                 </ProtectedRoute>
               } 
             />

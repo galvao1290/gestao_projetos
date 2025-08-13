@@ -78,11 +78,11 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // Função de login
-  const login = async (email, senha) => {
+  const login = async (username, senha) => {
     try {
       setLoading(true);
       const response = await axios.post('/api/auth/login', {
-        email,
+        username,
         senha
       });
 

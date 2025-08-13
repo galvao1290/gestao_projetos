@@ -8,10 +8,21 @@ const userSchema = new mongoose.Schema({
     trim: true,
     minlength: [2, 'Nome deve ter pelo menos 2 caracteres']
   },
+  username: {
+    type: String,
+    required: [true, 'Nome de usuário é obrigatório'],
+    unique: true,
+    lowercase: true,
+    trim: true,
+    minlength: [3, 'Nome de usuário deve ter pelo menos 3 caracteres'],
+    maxlength: [20, 'Nome de usuário deve ter no máximo 20 caracteres'],
+    match: [/^[a-zA-Z0-9_]+$/, 'Nome de usuário deve conter apenas letras, números e underscore']
+  },
   email: {
     type: String,
-    required: [true, 'Email é obrigatório'],
+    required: false,
     unique: true,
+    sparse: true,
     lowercase: true,
     trim: true,
     match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'Email inválido']
@@ -19,7 +30,7 @@ const userSchema = new mongoose.Schema({
   senha: {
     type: String,
     required: [true, 'Senha é obrigatória'],
-    minlength: [6, 'Senha deve ter pelo menos 6 caracteres']
+    minlength: [3, 'Senha deve ter pelo menos 3 caracteres']
   },
   role: {
     type: String,
@@ -70,6 +81,11 @@ userSchema.methods.toJSON = function() {
 // Método estático para buscar usuário por email
 userSchema.statics.buscarPorEmail = function(email) {
   return this.findOne({ email: email.toLowerCase() });
+};
+
+// Método estático para buscar usuário por username
+userSchema.statics.buscarPorUsername = function(username) {
+  return this.findOne({ username: username.toLowerCase() });
 };
 
 module.exports = mongoose.model('User', userSchema);

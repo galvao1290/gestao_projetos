@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import LoadingSpinner from './LoadingSpinner';
+import { XIcon, SearchIcon } from './Icons';
 
 const GerenciarColaboradores = ({ projetoId, onClose }) => {
   const [colaboradores, setColaboradores] = useState([]);
@@ -88,9 +89,7 @@ const GerenciarColaboradores = ({ projetoId, onClose }) => {
         <div className="modal-header">
           <h2>Gerenciar Colaboradores</h2>
           <button className="close-button" onClick={onClose}>
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <path d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <XIcon />
           </button>
         </div>
 
@@ -105,9 +104,7 @@ const GerenciarColaboradores = ({ projetoId, onClose }) => {
 
         <div className="search-section">
           <div className="search-box">
-            <svg viewBox="0 0 24 24" fill="currentColor" className="search-icon">
-              <path d="m21 21-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
+            <SearchIcon className="search-icon" />
             <input
               type="text"
               placeholder="Buscar colaboradores..."

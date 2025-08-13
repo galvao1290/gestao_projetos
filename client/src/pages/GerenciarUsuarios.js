@@ -1,11 +1,14 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import Navbar from '../components/Navbar';
 import LoadingSpinner from '../components/LoadingSpinner';
 import '../styles/GerenciarUsuarios.css';
+import { SearchIcon, FilterIcon, GridIcon, ListIcon, ChevronUpIcon, ChevronDownIcon, SortIcon, UsersIcon, UserCheckIcon, UserXIcon, ShieldIcon, CheckIcon, XIcon, RefreshIcon, PlusIcon } from '../components/Icons';
 
 const GerenciarUsuarios = () => {
+  const navigate = useNavigate();
   const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -214,20 +217,12 @@ const GerenciarUsuarios = () => {
 
   const getSortIcon = (field) => {
     if (sortBy !== field) {
-      return (
-        <svg className="sort-icon" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
-        </svg>
-      );
+      return <SortIcon className="sort-icon" />;
     }
     return sortOrder === 'asc' ? (
-      <svg className="sort-icon active" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M5 15l7-7 7 7" />
-      </svg>
+      <ChevronUpIcon className="sort-icon active" />
     ) : (
-      <svg className="sort-icon active" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M19 9l-7 7-7-7" />
-      </svg>
+      <ChevronDownIcon className="sort-icon active" />
     );
   };
 
@@ -251,9 +246,7 @@ const GerenciarUsuarios = () => {
             <div className="header-stats">
               <div className="stat-card">
                 <div className="stat-icon total">
-                  <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
-                  </svg>
+                  <UsersIcon />
                 </div>
                 <div className="stat-content">
                   <span className="stat-number">{pagination?.totalUsers || 0}</span>
@@ -263,9 +256,7 @@ const GerenciarUsuarios = () => {
               
               <div className="stat-card">
                 <div className="stat-icon active">
-                  <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
+                  <UserCheckIcon />
                 </div>
                 <div className="stat-content">
                   <span className="stat-number">{statsUsuarios.ativos}</span>
@@ -275,9 +266,7 @@ const GerenciarUsuarios = () => {
               
               <div className="stat-card">
                 <div className="stat-icon inactive">
-                  <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728" />
-                  </svg>
+                  <UserXIcon />
                 </div>
                 <div className="stat-content">
                   <span className="stat-number">{statsUsuarios.inativos}</span>
@@ -287,9 +276,7 @@ const GerenciarUsuarios = () => {
               
               <div className="stat-card">
                 <div className="stat-icon admin">
-                  <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-                  </svg>
+                  <ShieldIcon />
                 </div>
                 <div className="stat-content">
                   <span className="stat-number">{statsUsuarios.administradores}</span>
@@ -302,74 +289,82 @@ const GerenciarUsuarios = () => {
 
         {/* Barra de ferramentas */}
         <div className="users-toolbar">
-          <div className="toolbar-left">
-            <div className="search-container">
-              <svg viewBox="0 0 24 24" fill="currentColor" className="search-icon">
-                <path d="m21 21-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              <input
-                type="text"
-                placeholder="Buscar por nome ou email..."
-                value={searchTerm}
-                onChange={handleSearch}
-                className="search-input"
-              />
-              {searchTerm && (
+          <div className="toolbar-main">
+            <div className="toolbar-left">
+              <div className="search-container">
+                <SearchIcon className="search-icon" />
+                <input
+                  type="text"
+                  placeholder="Buscar por nome ou username..."
+                  value={searchTerm}
+                  onChange={handleSearch}
+                  className="search-input"
+                />
+                {searchTerm && (
+                  <button 
+                    onClick={() => setSearchTerm('')}
+                    className="clear-search"
+                  >
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+              
+              <div className="toolbar-actions">
+                <div className="action-group">
+                  <button 
+                    onClick={() => setShowFilters(!showFilters)}
+                    className={`toolbar-btn filter-toggle ${showFilters ? 'active' : ''}`}
+                  >
+                    <FilterIcon />
+                    Filtros
+                    {hasActiveFilters && <span className="filter-badge">{[searchTerm, roleFilter, statusFilter].filter(Boolean).length}</span>}
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <div className="toolbar-right">
+              <div className="toolbar-actions">
+                <div className="action-group">
+                  <button 
+                    onClick={() => navigate('/criar-usuario')}
+                    className="toolbar-btn btn-primary"
+                  >
+                    <PlusIcon />
+                    Criar Usuário
+                  </button>
+                  
+                  <button 
+                    onClick={carregarUsuarios}
+                    className="toolbar-btn btn-outline"
+                    disabled={loading}
+                  >
+                    <RefreshIcon />
+                    Atualizar
+                  </button>
+                </div>
+              </div>
+              
+              <div className="view-toggle">
                 <button 
-                  onClick={() => setSearchTerm('')}
-                  className="clear-search"
+                  onClick={() => setViewMode('table')}
+                  className={`view-btn ${viewMode === 'table' ? 'active' : ''}`}
+                  title="Visualização em tabela"
                 >
-                  <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+                  <ListIcon />
                 </button>
-              )}
+                <button 
+                  onClick={() => setViewMode('cards')}
+                  className={`view-btn ${viewMode === 'cards' ? 'active' : ''}`}
+                  title="Visualização em cards"
+                >
+                  <GridIcon />
+                </button>
+              </div>
             </div>
-            
-            <button 
-              onClick={() => setShowFilters(!showFilters)}
-              className={`filter-toggle ${showFilters ? 'active' : ''}`}
-            >
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-              </svg>
-              Filtros
-              {hasActiveFilters && <span className="filter-badge">{[searchTerm, roleFilter, statusFilter].filter(Boolean).length}</span>}
-            </button>
-          </div>
-          
-          <div className="toolbar-right">
-            <div className="view-toggle">
-              <button 
-                onClick={() => setViewMode('table')}
-                className={`view-btn ${viewMode === 'table' ? 'active' : ''}`}
-                title="Visualização em tabela"
-              >
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M3 3h18v18H3V3zm16 16V5H5v14h14zM7 7h2v2H7V7zm4 0h2v2h-2V7zm4 0h2v2h-2V7zM7 11h2v2H7v-2zm4 0h2v2h-2v-2zm4 0h2v2h-2v-2zM7 15h2v2H7v-2zm4 0h2v2h-2v-2zm4 0h2v2h-2v-2z" />
-                </svg>
-              </button>
-              <button 
-                onClick={() => setViewMode('cards')}
-                className={`view-btn ${viewMode === 'cards' ? 'active' : ''}`}
-                title="Visualização em cards"
-              >
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z" />
-                </svg>
-              </button>
-            </div>
-            
-            <button 
-              onClick={carregarUsuarios}
-              className="btn btn-outline"
-              disabled={loading}
-            >
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              Atualizar
-            </button>
           </div>
         </div>
 
@@ -400,7 +395,7 @@ const GerenciarUsuarios = () => {
                 <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
                   <option value="dataCriacao">Data de criação</option>
                   <option value="nome">Nome</option>
-                  <option value="email">Email</option>
+                  <option value="username">Username</option>
                   <option value="ultimoLogin">Último login</option>
                 </select>
               </div>
@@ -510,11 +505,11 @@ const GerenciarUsuarios = () => {
                       </th>
                       <th 
                         className="sortable"
-                        onClick={() => handleSort('email')}
+                        onClick={() => handleSort('username')}
                       >
                         <div className="th-content">
-                          <span>Email</span>
-                          {getSortIcon('email')}
+                          <span>Username</span>
+                          {getSortIcon('username')}
                         </div>
                       </th>
                       <th>Função</th>
@@ -567,7 +562,7 @@ const GerenciarUsuarios = () => {
                         </td>
                         <td>
                           <div className="email-cell">
-                            <span className="email-text">{usuario.email}</span>
+                            <span className="email-text">{usuario.username}</span>
                           </div>
                         </td>
                         <td>
@@ -653,7 +648,7 @@ const GerenciarUsuarios = () => {
                     
                     <div className="card-content">
                       <h3 className="card-name">{usuario.nome}</h3>
-                      <p className="card-email">{usuario.email}</p>
+                      <p className="card-email">{usuario.username}</p>
                       
                       <div className="card-meta">
                         <span className={`card-role role-${usuario.role.toLowerCase()}`}>
@@ -806,41 +801,7 @@ const GerenciarUsuarios = () => {
           <div className="page-footer">
             <div className="footer-stats">
               <div className="stat-group">
-                <div className="stat-item primary">
-                  <span className="stat-icon">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
-                    </svg>
-                  </span>
-                  <div className="stat-content">
-                    <span className="stat-value">{pagination.totalUsers}</span>
-                    <span className="stat-label">Total de usuários</span>
-                  </div>
-                </div>
-                
-                <div className="stat-item">
-                  <span className="stat-icon active">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </span>
-                  <div className="stat-content">
-                    <span className="stat-value">{stats.ativos}</span>
-                    <span className="stat-label">Usuários ativos</span>
-                  </div>
-                </div>
-                
-                <div className="stat-item">
-                  <span className="stat-icon inactive">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636" />
-                    </svg>
-                  </span>
-                  <div className="stat-content">
-                    <span className="stat-value">{stats.inativos}</span>
-                    <span className="stat-label">Usuários inativos</span>
-                  </div>
-                </div>
+
               </div>
               
               {hasActiveFilters && (
@@ -865,16 +826,12 @@ const GerenciarUsuarios = () => {
                     )}
                     {statusFilter && (
                       <span className="filter-tag">
-                        <svg viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
+                        <CheckIcon />
                         Status: {statusFilter === 'true' ? 'Ativo' : 'Inativo'}
                       </span>
                     )}
                     <button onClick={clearFilters} className="clear-filters-btn">
-                      <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M6 18L18 6M6 6l12 12" />
-                      </svg>
+                      <XIcon />
                       Limpar filtros
                     </button>
                   </div>

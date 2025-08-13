@@ -41,29 +41,7 @@ const MeusProjetos = () => {
     projeto.descricao.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'ativo': return '#10b981';
-      case 'pausado': return '#f59e0b';
-      case 'concluido': return '#6b7280';
-      case 'cancelado': return '#ef4444';
-      default: return '#6b7280';
-    }
-  };
-
-  const getPrioridadeColor = (prioridade) => {
-    switch (prioridade) {
-      case 'alta': return '#ef4444';
-      case 'media': return '#f59e0b';
-      case 'baixa': return '#10b981';
-      default: return '#6b7280';
-    }
-  };
-
-  const formatarData = (data) => {
-    if (!data) return 'Não definida';
-    return new Date(data).toLocaleDateString('pt-BR');
-  };
+  // Funções removidas pois não são mais utilizadas no design moderno
 
   if (loading) {
     return (
@@ -142,78 +120,40 @@ const MeusProjetos = () => {
           ) : (
             <div className="projetos-grid">
               {projetosFiltrados.map(projeto => {
-                const colaborador = projeto.colaboradores.find(c => c.usuario._id === user.id);
                 
                 return (
                   <div 
                     key={projeto._id} 
-                    className="projeto-card clickable"
+                    className="projeto-card-modern clickable"
                     onClick={() => navigate(`/projeto/${projeto._id}`)}
                   >
-                    <div className="projeto-header">
-                      <h3 className="projeto-nome">{projeto.nome}</h3>
-                      <div className="projeto-badges">
-                        <span 
-                          className="badge status-badge"
-                          style={{ backgroundColor: getStatusColor(projeto.status) }}
-                        >
-                          {projeto.status}
-                        </span>
-                        <span 
-                          className="badge prioridade-badge"
-                          style={{ backgroundColor: getPrioridadeColor(projeto.prioridade) }}
-                        >
-                          {projeto.prioridade}
-                        </span>
-                      </div>
-                    </div>
-                    
-                    <p className="projeto-descricao">{projeto.descricao}</p>
-                    
-                    <div className="projeto-info">
-                      <div className="info-item">
-                        <span className="info-label">Meu Papel:</span>
-                        <span className="info-value papel-badge">
-                          {colaborador?.papel || 'COLABORADOR'}
-                        </span>
-                      </div>
-                      
-                      <div className="info-item">
-                        <span className="info-label">Progresso:</span>
-                        <div className="progress-container">
-                          <div className="progress-bar">
-                            <div 
-                              className="progress-fill"
-                              style={{ width: `${projeto.progresso || 0}%` }}
-                            ></div>
-                          </div>
-                          <span className="progress-text">{projeto.progresso || 0}%</span>
+                    <div className="card-content">
+                      <div className="card-header">
+                        <h3 className="card-title">{projeto.nome}</h3>
+                        <div className="card-icon">
+                          <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M9 18l6-6-6-6" />
+                          </svg>
                         </div>
                       </div>
                       
-                      <div className="info-item">
-                        <span className="info-label">Criado por:</span>
-                        <span className="info-value">{projeto.criador?.nome || 'N/A'}</span>
+                      <div className="card-body">
+                        <p className="card-description">
+                          {projeto.descricao || 'Sem descrição disponível'}
+                        </p>
                       </div>
                       
-                      <div className="info-item">
-                        <span className="info-label">Prazo:</span>
-                        <span className="info-value">{formatarData(projeto.dataFim)}</span>
+                      <div className="card-footer">
+                        <div className="creator-info">
+                          <div className="creator-avatar">
+                            {projeto.criador?.nome?.charAt(0).toUpperCase() || 'A'}
+                          </div>
+                          <div className="creator-details">
+                            <span className="creator-label">Criado por</span>
+                            <span className="creator-name">{projeto.criador?.nome || 'Administrador'}</span>
+                          </div>
+                        </div>
                       </div>
-                      
-                      <div className="info-item">
-                        <span className="info-label">Colunas:</span>
-                        <span className="info-value">{projeto.colunas?.length || 0}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="projeto-footer">
-                      <span className="data-adicao">
-                        Adicionado em {formatarData(colaborador?.dataAdicao)}
-                      </span>
-                      <span className="click-hint">
-                        Clique para abrir →
-                      </span>
                     </div>
                   </div>
                 );
