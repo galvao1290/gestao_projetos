@@ -176,23 +176,9 @@ const GerenciarColaboradores = ({ projetoId, onClose }) => {
                       </div>
                     </div>
                     <div className="colaborador-actions">
-                      <select 
-                        className="papel-select"
-                        defaultValue="DESENVOLVEDOR"
-                        id={`papel-${colaborador._id}`}
-                      >
-                        <option value="DESENVOLVEDOR">Desenvolvedor</option>
-                        <option value="ANALISTA">Analista</option>
-                        <option value="DESIGNER">Designer</option>
-                        <option value="TESTER">Tester</option>
-                        <option value="GERENTE">Gerente</option>
-                      </select>
                       <button
                         className="btn btn-primary btn-sm"
-                        onClick={() => {
-                          const papel = document.getElementById(`papel-${colaborador._id}`).value;
-                          adicionarColaborador(colaborador._id, papel);
-                        }}
+                        onClick={() => adicionarColaborador(colaborador._id)}
                         disabled={processando}
                       >
                         Adicionar

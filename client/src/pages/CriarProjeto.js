@@ -373,10 +373,6 @@ const CriarProjeto = () => {
                     <span className="stat-label">Linhas:</span>
                     <span className="stat-value">{dadosCSV?.linhas?.length || 0}</span>
                   </div>
-                  <div className="stat">
-                    <span className="stat-label">Status:</span>
-                    <span className="stat-value">{projeto?.status || 'PLANEJAMENTO'}</span>
-                  </div>
                 </div>
               </div>
             </div>
