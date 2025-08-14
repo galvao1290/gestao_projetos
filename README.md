@@ -82,8 +82,7 @@ net start MongoDB
 # macOS/Linux
 sudo systemctl start mongod
 
-# Ou usando Docker
-docker run -d -p 27017:27017 --name mongodb mongo:latest
+
 ```
 
 ## 🚀 Executando o Projeto

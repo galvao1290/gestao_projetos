@@ -157,10 +157,7 @@ coverage/
 # PM2
 .pm2/
 
-# Docker (manter arquivos de configuração)
-# Dockerfile
-# docker-compose.yml
-.dockerignore
+
 
 # Kubernetes (manter arquivos de configuração)
 # *.yaml

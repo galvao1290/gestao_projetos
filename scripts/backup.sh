@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Script de backup automático para MongoDB
-# Este script pode ser executado via cron ou Docker
+# Este script pode ser executado via cron
 
 set -e  # Parar em caso de erro
 
