@@ -29,14 +29,14 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/projetos', require('./routes/projetos'));
 
-// Servir arquivos estáticos do React em produção
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, 'client/build')));
-  
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
+// Rota de health check
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'OK', 
+    message: 'API funcionando!',
+    timestamp: new Date().toISOString()
   });
-}
+});
 
 // Rota de teste
 app.get('/api/test', (req, res) => {
