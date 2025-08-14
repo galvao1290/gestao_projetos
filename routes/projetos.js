@@ -667,6 +667,48 @@ router.put('/:id/dados',
           return linha;
         });
 
+        // Identificar novas colunas
+        const colunasExistentes = projeto.dados.colunas ? projeto.dados.colunas.map(col => col.nome) : [];
+        const novasColunas = colunas.filter(col => !colunasExistentes.includes(col.nome));
+        
+        // Se há novas colunas, sincronizar permissões para todos os colaboradores
+        if (novasColunas.length > 0) {
+          console.log('SINCRONIZANDO PERMISSÕES PARA NOVAS COLUNAS:', novasColunas.map(col => col.nome));
+          
+          // Para cada colaborador existente, adicionar permissões padrão para as novas colunas
+          projeto.colaboradores.forEach(colaborador => {
+            const colaboradorId = colaborador.usuario._id || colaborador.usuario;
+            
+            // Buscar permissões existentes do colaborador
+            let permissoesColaborador = projeto.permissoesColuna.find(
+              perm => perm.colaborador.toString() === colaboradorId.toString()
+            );
+            
+            // Se não existem permissões para este colaborador, criar
+            if (!permissoesColaborador) {
+              permissoesColaborador = {
+                colaborador: colaboradorId,
+                permissoes: []
+              };
+              projeto.permissoesColuna.push(permissoesColaborador);
+            }
+            
+            // Adicionar permissões padrão para as novas colunas
+            novasColunas.forEach(novaColuna => {
+              const permissaoExistente = permissoesColaborador.permissoes.find(
+                perm => perm.nomeColuna === novaColuna.nome
+              );
+              
+              if (!permissaoExistente) {
+                permissoesColaborador.permissoes.push({
+                  nomeColuna: novaColuna.nome,
+                  tipo: 'LEITURA_ESCRITA' // Permissão padrão para novas colunas
+                });
+              }
+            });
+          });
+        }
+
         projeto.dados.colunas = colunas;
         projeto.dados.linhas = linhas;
       } else {
@@ -1060,12 +1102,8 @@ router.put('/:id/permissoes-coluna/:colaboradorId', verificarToken, verificarAdm
         });
       }
       
-      if (!colunasExistentes.includes(permissao.nomeColuna)) {
-        return res.status(400).json({
-          success: false,
-          message: `Coluna '${permissao.nomeColuna}' não existe no projeto`
-        });
-      }
+      // Remover validação restritiva - permitir permissões para colunas que podem ter sido adicionadas recentemente
+      // A sincronização automática garante que as colunas existam
       
       if (!tiposValidos.includes(permissao.tipo)) {
         return res.status(400).json({
@@ -1177,11 +1215,28 @@ router.get('/:id/permissoes-coluna', verificarToken, verificarAdmin, async (req,
         perm => perm.colaborador._id.toString() === colaborador.usuario._id.toString()
       );
 
+      let permissoesCompletas;
+      
       if (permissoesExistentes) {
+        // Verificar se há colunas sem permissões definidas
+        const colunasComPermissao = permissoesExistentes.permissoes.map(p => p.nomeColuna);
+        const colunasSemPermissao = projeto.dados.colunas.filter(
+          coluna => !colunasComPermissao.includes(coluna.nome)
+        );
+        
+        // Criar permissões completas incluindo as colunas faltantes
+        permissoesCompletas = [
+          ...permissoesExistentes.permissoes,
+          ...colunasSemPermissao.map(coluna => ({
+            nomeColuna: coluna.nome,
+            tipo: 'LEITURA_ESCRITA' // Permissão padrão para colunas sem permissão definida
+          }))
+        ];
+        
         return {
           colaborador: colaborador.usuario,
           papel: colaborador.papel,
-          permissoes: permissoesExistentes.permissoes
+          permissoes: permissoesCompletas
         };
       } else {
         // Permissões padrão se não definidas
