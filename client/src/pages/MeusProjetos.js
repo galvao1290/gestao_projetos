@@ -130,10 +130,17 @@ const MeusProjetos = () => {
                     <div className="card-content">
                       <div className="card-header">
                         <h3 className="card-title">{projeto.nome}</h3>
-                        <div className="card-icon">
-                          <svg viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M9 18l6-6-6-6" />
-                          </svg>
+                        <div className="card-header-right">
+                          {projeto.mensagensNaoLidas > 0 && (
+                            <div className="notification-badge">
+                              {projeto.mensagensNaoLidas}
+                            </div>
+                          )}
+                          <div className="card-icon">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M9 18l6-6-6-6" />
+                            </svg>
+                          </div>
                         </div>
                       </div>
                       

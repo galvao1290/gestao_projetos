@@ -173,10 +173,16 @@ router.get('/',
         .skip(skip)
         .limit(limit);
 
+      // Adicionar contagem de mensagens não lidas para cada projeto
+      const projetosComNotificacoes = projetos.map(projeto => {
+        const projetoObj = projeto.toJSON(req.user._id || req.user.id);
+        return projetoObj;
+      });
+
       res.json({
         success: true,
         data: {
-          projetos,
+          projetos: projetosComNotificacoes,
           pagination: {
             current: page,
             pages: Math.ceil(total / limit),
@@ -1181,9 +1187,15 @@ router.get('/colaborador/meus', verificarToken, async (req, res) => {
     .select('-dados.linhas') // Não incluir as linhas para melhor performance
     .sort({ createdAt: -1 });
     
+    // Adicionar contagem de mensagens não lidas para cada projeto
+    const projetosComNotificacoes = projetos.map(projeto => {
+      const projetoObj = projeto.toJSON(userId);
+      return projetoObj;
+    });
+    
     res.json({
       success: true,
-      data: projetos
+      data: projetosComNotificacoes
     });
   } catch (error) {
     console.error('Erro ao buscar projetos do colaborador:', error);
@@ -1530,6 +1542,59 @@ router.delete('/:id/comentarios/:comentarioId',
       });
     } catch (error) {
       console.error('Erro ao excluir comentário:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Erro interno do servidor' 
+      });
+    }
+  }
+);
+
+// @route   POST /api/projetos/:id/marcar-lidas
+// @desc    Marcar mensagens como lidas para o usuário
+// @access  Private (Colaborador ou Admin)
+router.post('/:id/marcar-lidas',
+  verificarToken,
+  verificarColaboradorOuAdmin,
+  [
+    param('id').isMongoId().withMessage('ID do projeto inválido')
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Dados inválidos', 
+          errors: errors.array() 
+        });
+      }
+
+      const projeto = await Projeto.findById(req.params.id);
+      if (!projeto) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'Projeto não encontrado' 
+        });
+      }
+
+      // Verificar se o usuário tem acesso ao projeto
+      if (!projeto.temAcesso(req.user._id || req.user.id)) {
+        return res.status(403).json({ 
+          success: false, 
+          message: 'Acesso negado' 
+        });
+      }
+
+      // Marcar mensagens como lidas
+      await projeto.marcarMensagensLidas(req.user._id || req.user.id);
+
+      res.json({
+        success: true,
+        message: 'Mensagens marcadas como lidas'
+      });
+    } catch (error) {
+      console.error('Erro ao marcar mensagens como lidas:', error);
       res.status(500).json({ 
         success: false, 
         message: 'Erro interno do servidor' 

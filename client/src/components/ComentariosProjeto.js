@@ -18,6 +18,14 @@ const ComentariosProjeto = ({ projetoId }) => {
       const response = await axios.get(`/api/projetos/${projetoId}/comentarios`);
       if (response.data.success) {
         setComentarios(response.data.data);
+        
+        // Marcar mensagens como lidas quando os comentários são carregados
+        try {
+          await axios.post(`/api/projetos/${projetoId}/marcar-lidas`);
+        } catch (markError) {
+          console.error('Erro ao marcar mensagens como lidas:', markError);
+          // Não mostrar erro para o usuário, pois é uma operação secundária
+        }
       }
     } catch (error) {
       console.error('Erro ao carregar comentários:', error);

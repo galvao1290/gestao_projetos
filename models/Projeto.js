@@ -180,6 +180,17 @@ const projetoSchema = new mongoose.Schema({
       default: true
     }
   }],
+  mensagensLidas: [{
+    usuario: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
+    },
+    ultimaLeitura: {
+      type: Date,
+      default: Date.now
+    }
+  }],
   ativo: {
     type: Boolean,
     default: true
@@ -277,6 +288,39 @@ projetoSchema.methods.removerLinha = function(indice) {
   return this.save();
 };
 
+// Método para marcar mensagens como lidas
+projetoSchema.methods.marcarMensagensLidas = function(usuarioId) {
+  const leituraExistente = this.mensagensLidas.find(
+    leitura => leitura.usuario.toString() === usuarioId.toString()
+  );
+  
+  if (leituraExistente) {
+    leituraExistente.ultimaLeitura = new Date();
+  } else {
+    this.mensagensLidas.push({
+      usuario: usuarioId,
+      ultimaLeitura: new Date()
+    });
+  }
+  
+  return this.save();
+};
+
+// Método para obter contagem de mensagens não lidas
+projetoSchema.methods.obterMensagensNaoLidas = function(usuarioId) {
+  const leituraUsuario = this.mensagensLidas.find(
+    leitura => leitura.usuario.toString() === usuarioId.toString()
+  );
+  
+  const ultimaLeitura = leituraUsuario ? leituraUsuario.ultimaLeitura : new Date(0);
+  
+  return this.comentarios.filter(comentario => 
+    comentario.ativo && 
+    comentario.criadoEm > ultimaLeitura &&
+    comentario.autor.toString() !== usuarioId.toString()
+  ).length;
+};
+
 // Método para calcular estatísticas
 projetoSchema.methods.obterEstatisticas = function() {
   return {
@@ -290,11 +334,16 @@ projetoSchema.methods.obterEstatisticas = function() {
 };
 
 // Método toJSON para controlar dados retornados
-projetoSchema.methods.toJSON = function() {
+projetoSchema.methods.toJSON = function(usuarioId = null) {
   const projeto = this.toObject();
   
   // Adicionar estatísticas
   projeto.estatisticas = this.obterEstatisticas();
+  
+  // Adicionar contagem de mensagens não lidas se usuário for fornecido
+  if (usuarioId) {
+    projeto.mensagensNaoLidas = this.obterMensagensNaoLidas(usuarioId);
+  }
   
   return projeto;
 };
