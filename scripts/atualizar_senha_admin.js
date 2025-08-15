@@ -28,8 +28,8 @@ async function atualizarSenhaAdmin() {
       return;
     }
 
-    // Criar hash da nova senha
-    const salt = await bcrypt.genSalt(10);
+    // Criar hash da nova senha (usando mesmo salt do modelo User)
+    const salt = await bcrypt.genSalt(12);
     const senhaHash = await bcrypt.hash(NOVA_SENHA, salt);
 
     // Atualizar a senha

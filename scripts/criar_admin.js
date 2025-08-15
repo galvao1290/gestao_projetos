@@ -45,8 +45,8 @@ async function criarAdmin() {
       return;
     }
 
-    // Criar hash da senha
-    const salt = await bcrypt.genSalt(10);
+    // Criar hash da senha (usando mesmo salt do modelo User)
+    const salt = await bcrypt.genSalt(12);
     const senhaHash = await bcrypt.hash(adminData.senha, salt);
 
     // Criar novo usuário admin
