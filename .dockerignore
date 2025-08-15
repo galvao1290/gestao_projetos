@@ -40,8 +40,8 @@ dist
 # Uploads
 uploads
 
-# Scripts
-scripts
+# Scripts (comentado para permitir scripts de admin)
+# scripts
 
 # Documentação
 README*
