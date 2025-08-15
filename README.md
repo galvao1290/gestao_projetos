@@ -69,7 +69,7 @@ cp .env.example .env
 
 **Variáveis obrigatórias no .env:**
 ```env
-MONGO_URI=mongodb://localhost:27017/gestao_projetos
+MONGO_URI=mongodb://191.252.182.20:27017/gestao_projetos
 JWT_SECRET=seu_jwt_secret_muito_seguro_aqui
 PORT=5000
 ```
@@ -113,9 +113,9 @@ npm start
 
 ## 🌐 Acesso
 
-- **Frontend:** http://localhost:3000
-- **Backend API:** http://localhost:5000
-- **MongoDB:** mongodb://localhost:27017
+- **Frontend:** http://191.252.182.20:3000
+- **Backend API:** http://191.252.182.20:5000
+- **MongoDB:** mongodb://191.252.182.20:27017
 
 ## 📁 Estrutura do Projeto
 

@@ -43,7 +43,7 @@ const Projeto = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get(
-        `http://localhost:5000/api/projetos/${id}/permissoes-coluna/${user._id}?cacheBust=${new Date().getTime()}`, // ← Usar user._id
+        `http://191.252.182.20:5000/api/projetos/${id}/permissoes-coluna/${user._id}?cacheBust=${new Date().getTime()}`, // ← Usar user._id
         { 
           headers: { 
             Authorization: `Bearer ${token}`,
@@ -80,7 +80,7 @@ const Projeto = () => {
         ? `/api/projetos/${id}`
         : `/api/projetos/${id}`; // Mesmo endpoint, mas com verificação de permissão no backend
       
-      const response = await axios.get(endpoint, {
+      const response = await axios.get(`http://191.252.182.20:5000${endpoint}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -121,7 +121,7 @@ const Projeto = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.put(
-        `http://localhost:5000/api/projetos/${id}`,
+        `http://191.252.182.20:5000/api/projetos/${id}`,
         { descricao: novaDescricao },
         { headers: { Authorization: `Bearer ${token}` } }
       );

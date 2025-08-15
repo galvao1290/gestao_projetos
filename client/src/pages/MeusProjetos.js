@@ -19,7 +19,7 @@ const MeusProjetos = () => {
       setError('');
       
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:5000/api/projetos/colaborador/meus', {
+      const response = await axios.get('http://191.252.182.20:5000/api/projetos/colaborador/meus', {
         headers: { Authorization: `Bearer ${token}` }
       });
       

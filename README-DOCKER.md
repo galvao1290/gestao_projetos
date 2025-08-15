@@ -28,9 +28,9 @@ docker-compose down
 ```
 
 ### 3. Acessar a aplicação
-- Frontend: http://localhost (porta 80)
-- Backend API: http://localhost:5000
-- MongoDB: localhost:27017
+- Frontend: http://191.252.182.20 (porta 80)
+- Backend API: http://191.252.182.20:5000
+- MongoDB: 191.252.182.20:27017
 
 ## Estrutura dos Serviços
 
