@@ -1,0 +1,51 @@
+services:
+  # Banco de dados MongoDB
+  mongodb:
+    image: mongo:6.0
+    container_name: gestao-projetos-db
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - gestao-network
+
+  # Backend Node.js
+  backend:
+    build: .
+    container_name: gestao-projetos-backend
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=production
+      - PORT=5000
+      - MONGODB_URI=mongodb://mongodb:27017/gestao_projetos
+      - JWT_SECRET=sua_chave_secreta_super_segura_aqui_mude_em_producao
+      - CLIENT_URL=http://localhost
+    depends_on:
+      - mongodb
+    networks:
+      - gestao-network
+
+  # Frontend React
+  frontend:
+    build: ./client
+    container_name: gestao-projetos-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - gestao-network
+
+# Volumes para persistência de dados
+volumes:
+  mongodb_data:
+
+# Rede para comunicação entre containers
+networks:
+  gestao-network:
+    driver: bridge
